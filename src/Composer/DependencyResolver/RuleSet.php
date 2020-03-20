@@ -160,6 +160,9 @@ class RuleSet implements \IteratorAggregate, \Countable
         $result = array();
         foreach ($this->rules as $type => $rules)
         {
+            /**
+             * @var Rule[] $rules
+             */
             foreach ($rules as $rule) {
                 $result[] = $rule->toDIMACS();
             }
