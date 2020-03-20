@@ -215,6 +215,7 @@ class Solver
 
         $this->setupInstalledMap();
         $this->rules = $this->ruleSetGenerator->getRulesFor($this->jobs, $this->installedMap, $ignorePlatformReqs);
+        file_put_contents("composer" . uniqid() . ".cnf", $this->rules->toDIMACS($this->pool));
         $this->checkForRootRequireProblems($ignorePlatformReqs);
         $this->decisions = new Decisions($this->pool);
         $this->watchGraph = new RuleWatchGraph;

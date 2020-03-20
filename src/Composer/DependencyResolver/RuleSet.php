@@ -155,6 +155,18 @@ class RuleSet implements \IteratorAggregate, \Countable
         return array_keys($types);
     }
 
+    public function toDIMACS(Pool $pool)
+    {
+        $result = array();
+        foreach ($this->rules as $type => $rules)
+        {
+            foreach ($rules as $rule) {
+                $result[] = $rule->toDIMACS();
+            }
+        }
+        return "p cnf " . $pool->count() . " " . count($result) . "\n" . implode(" 0\n", $result) . " 0\n";
+    }
+
     public function getPrettyString(Pool $pool = null)
     {
         $string = "\n";

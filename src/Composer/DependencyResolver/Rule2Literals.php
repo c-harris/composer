@@ -97,6 +97,11 @@ class Rule2Literals extends Rule
         return false;
     }
 
+    public function toDIMACS()
+    {
+        return $this->literal1 . ' ' . $this->literal2;
+    }
+
     /**
      * Formats a rule as a string of the format (Literal1|Literal2|...)
      *

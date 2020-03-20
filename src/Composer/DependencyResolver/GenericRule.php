@@ -68,6 +68,10 @@ class GenericRule extends Rule
         return 1 === count($this->literals);
     }
 
+    public function toDIMACS()
+    {
+        return implode(' ', $this->literals);
+    }
     /**
      * Formats a rule as a string of the format (Literal1|Literal2|...)
      *

@@ -126,6 +126,8 @@ abstract class Rule
 
     abstract public function isAssertion();
 
+    abstract public function toDIMACS();
+
     public function getPrettyString(Pool $pool, array $installedMap = array())
     {
         $literals = $this->getLiterals();
