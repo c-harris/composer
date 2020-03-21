@@ -24,11 +24,7 @@ class PreprocessRule extends GenericRule
     {
         parent::__construct($literals, $reason, $reasonData, $job);
 
-        $this->posLiterals = array_filter($literals, function ($value) { return 0 < $value; });
-        $this->negLiterals = array_filter($literals, function ($value) { return 0 > $value; });
-        array_walk($this->negLiterals, function (&$value, $key) { $value = abs($value);});
-        $this->positiveLiteralHash = $this->literalHash($this->posLiterals);
-        $this->negativeLiteralHash = $this->literalHash($this->negLiterals);
+        $this->calculateHashes();
     }
 
     /**
@@ -62,5 +58,37 @@ class PreprocessRule extends GenericRule
         }
 
         return $result;
+    }
+
+    /**
+     * Drop the supplied literal, if present, from the rule and update hashes to suit
+     *
+     * @param $int
+     */
+    public function dropLiteral($int)
+    {
+        $this->literals = array_diff($this->literals, array($int));
+        $this->calculateHashes();
+    }
+
+    private function calculateHashes()
+    {
+        $this->posLiterals = array_filter(
+            $this->literals, function ($value) {
+            return 0 < $value;
+        }
+        );
+        $this->negLiterals = array_filter(
+            $this->literals, function ($value) {
+            return 0 > $value;
+        }
+        );
+        array_walk(
+            $this->negLiterals, function (&$value, $key) {
+            $value = abs($value);
+        }
+        );
+        $this->positiveLiteralHash = $this->literalHash($this->posLiterals);
+        $this->negativeLiteralHash = $this->literalHash($this->negLiterals);
     }
 }

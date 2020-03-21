@@ -34,4 +34,15 @@ class PreprocessRuleTest extends TestCase
 
         $this->assertFalse($rule->isTrivial());
     }
+
+    public function testRemoveLiteralFromSinglyTrivialRuleRendersItNonTrivial()
+    {
+        $rule = new PreprocessRule(array(42, -42, 99), Rule::RULE_PACKAGE_REQUIRES, null);
+
+        $this->assertTrue($rule->isTrivial());
+
+        $rule->dropLiteral(42);
+
+        $this->assertFalse($rule->isTrivial());
+    }
 }
