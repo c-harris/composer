@@ -19,6 +19,7 @@ class PreprocessRule extends GenericRule
     private $negativeLiteralHash = 0;
     private $posLiterals = array();
     private $negLiterals = array();
+    private $hash = '';
 
     public function __construct(array $literals, $reason, $reasonData, array $job = null)
     {
@@ -39,6 +40,16 @@ class PreprocessRule extends GenericRule
         }
 
         return 0 < count(array_intersect($this->posLiterals, $this->negLiterals));
+    }
+
+    /**
+     * Return hash of rule, to be used in whole bunch of things
+     *
+     * @return string
+     */
+    public function getHash()
+    {
+        return $this->hash;
     }
 
     private function literalHash(array $literals)
@@ -90,5 +101,6 @@ class PreprocessRule extends GenericRule
         );
         $this->positiveLiteralHash = $this->literalHash($this->posLiterals);
         $this->negativeLiteralHash = $this->literalHash($this->negLiterals);
+        $this->hash = md5(implode(',', $this->literals));
     }
 }
