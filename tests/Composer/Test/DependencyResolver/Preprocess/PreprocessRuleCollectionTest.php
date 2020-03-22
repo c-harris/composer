@@ -26,4 +26,5 @@ class PreprocessRuleCollectionTest extends TestCase
 
         $this->assertEquals(1, $collection->count());
     }
+
 }
