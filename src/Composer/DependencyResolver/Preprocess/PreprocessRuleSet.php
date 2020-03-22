@@ -76,10 +76,31 @@ class PreprocessRuleSet
             $this->occurs[$unitLit] = array();
         }
 
+        $smallLit = null;
+        $litCount = PHP_INT_MAX;
         foreach ($literals as $lit) {
             if (!array_key_exists($lit, $this->occurs)) {
                 $this->occurs[$lit] = array();
             }
+            // check to see if any of the already-added rules that share this particular literal subsume it
+            $occurList = $this->occurs[$lit];
+            $occurCount = count($occurList);
+            if (0 < $occurCount) {
+                if ($occurCount < $litCount) {
+                    $smallLit = $lit;
+                    $litCount = $occurCount;
+                }
+            }
+        }
+
+        if (null !== $smallLit) {
+            $occurList = $this->occurs[$smallLit];
+            if ($this->rules->checkSubsumed($rule, $occurList)) {
+                return false;
+            }
+        }
+
+        foreach ($literals as $lit) {
             $this->occurs[$lit][] = $hash;
         }
 

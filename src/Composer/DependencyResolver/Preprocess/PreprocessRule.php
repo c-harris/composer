@@ -13,13 +13,17 @@ use Composer\DependencyResolver\GenericRule;
 class PreprocessRule extends GenericRule
 {
     const LITERAL_MODULUS = 32;
+    public static $subsumes = 0;
+    public static $subsumesPostHash = 0;
+    public static $subsumesPostCount = 0;
 
-
-    private $positiveLiteralHash = 0;
-    private $negativeLiteralHash = 0;
+    public $positiveLiteralHash = 0;
+    public $negativeLiteralHash = 0;
+    public $allLiteralHash = 0;
     private $posLiterals = array();
     private $negLiterals = array();
     private $hash = '';
+    public $literalCount = 0;
 
     public function __construct(array $literals, $reason, $reasonData, array $job = null)
     {
@@ -101,6 +105,64 @@ class PreprocessRule extends GenericRule
         );
         $this->positiveLiteralHash = $this->literalHash($this->posLiterals);
         $this->negativeLiteralHash = $this->literalHash($this->negLiterals);
+        $this->allLiteralHash = $this->positiveLiteralHash | $this->negativeLiteralHash;
         $this->hash = md5(implode(',', $this->literals));
+        $this->literalCount = count($this->literals);
+    }
+
+    /**
+     * Determine whether this rule subsumes the supplied one - ie, this rule's literals are a strict, proper subset
+     * of supplied rule's literals
+     *
+     * @param PreprocessRule $rule
+     *
+     * @return bool
+     */
+    public function subsumes(PreprocessRule &$rule)
+    {
+        PreprocessRule::$subsumes++;
+
+        // If the positive hashes imply that subsumption _cannot_ happen, bail out
+        if (($this->positiveLiteralHash & $rule->positiveLiteralHash) != $this->positiveLiteralHash) {
+            return false;
+        }
+
+        // If the negative hashes imply that subsumption _cannot_ happen, bail out
+        if (($this->negativeLiteralHash & $rule->negativeLiteralHash) != $this->negativeLiteralHash) {
+            return false;
+        }
+
+        PreprocessRule::$subsumesPostHash++;
+
+        if ($this->literalCount >= $rule->literalCount) {
+            return false;
+        }
+
+        PreprocessRule::$subsumesPostCount++;
+
+        $thisLitz = $this->literals;
+        $thatLitz = $rule->getLiterals();
+
+        if ($thisLitz == array_intersect($thisLitz, $thatLitz)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @return int
+     */
+    public function getPositiveLiteralHash()
+    {
+        return $this->positiveLiteralHash;
+    }
+
+    /**
+     * @return int
+     */
+    public function getNegativeLiteralHash()
+    {
+        return $this->negativeLiteralHash;
     }
 }

@@ -64,4 +64,27 @@ class PreprocessRuleCollection implements \Countable
         }
         throw new \InvalidArgumentException('Must check either string or PreprocessRule');
     }
+
+    /**
+     * Check if any of the existing candidates subsume the supplied candidate rule
+     *
+     * @param PreprocessRule $rule
+     * @param array $candidates
+     *
+     * @return bool
+     */
+    public function checkSubsumed(PreprocessRule &$rule, array $candidates)
+    {
+        $allHash = $rule->allLiteralHash;
+        foreach ($candidates as $hash) {
+            if (array_key_exists($hash, $this->rules)) {
+                if (($this->rules[$hash]->allLiteralHash & $allHash) == $this->rules[$hash]->allLiteralHash) {
+                    if ($this->rules[$hash]->subsumes($rule)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
 }

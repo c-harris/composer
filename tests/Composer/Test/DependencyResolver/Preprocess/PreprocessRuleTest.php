@@ -45,4 +45,19 @@ class PreprocessRuleTest extends TestCase
 
         $this->assertFalse($rule->isTrivial());
     }
+
+    public function testDoesNotSubsumeSelf()
+    {
+        $rule = new PreprocessRule(array(42, -74), Rule::RULE_PACKAGE_REQUIRES, null);
+
+        $this->assertFalse($rule->subsumes($rule));
+    }
+
+    public function testDoesSubsumeStrictSuperset()
+    {
+        $rule1 = new PreprocessRule(array(42, -74), Rule::RULE_PACKAGE_REQUIRES, null);
+        $rule2 = new PreprocessRule(array(42, -74, 98), Rule::RULE_PACKAGE_REQUIRES, null);
+
+        $this->assertTrue($rule1->subsumes($rule2));
+    }
 }
