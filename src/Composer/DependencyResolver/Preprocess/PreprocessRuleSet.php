@@ -65,11 +65,13 @@ class PreprocessRuleSet
             $unitLit = $literals[0];
             $this->units[] = $unitLit;
 
-            if (array_key_exists($unitLit, $this->occurs)) {
-                $dropList = $this->occurs[$unitLit];
-                foreach ($dropList as $drop) {
-                    $this->rules->detach($drop);
-                }
+            if (!array_key_exists($unitLit, $this->occurs)) {
+                $this->occurs[$unitLit] = array();
+            }
+
+            $dropList = $this->occurs[$unitLit];
+            foreach ($dropList as $drop) {
+                $this->rules->detach($drop);
             }
             $this->occurs[$unitLit] = array();
         }
@@ -84,5 +86,10 @@ class PreprocessRuleSet
         $this->rules->attach($rule);
 
         return true;
+    }
+
+    public function contains($object)
+    {
+        return $this->rules->contains($object);
     }
 }

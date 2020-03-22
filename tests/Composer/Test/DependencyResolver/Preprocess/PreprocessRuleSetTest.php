@@ -64,4 +64,54 @@ class PreprocessRuleSetTest extends TestCase
 
         $this->assertEquals(1, $ruleSet->count());
     }
+
+    public function testAddUnitRuleSubsumesPreviouslyAddedRules()
+    {
+        $rule1 = new PreprocessRule(array(42, 100), Rule::RULE_PACKAGE_REQUIRES, null);
+        $this->assertFalse($rule1->isTrivial());
+
+        $rule2 = new PreprocessRule(array(42, 101), Rule::RULE_PACKAGE_REQUIRES, null);
+        $this->assertFalse($rule2->isTrivial());
+
+        $unit = new PreprocessRule(array(42), Rule::RULE_PACKAGE_REQUIRES, null);
+        $this->assertFalse($unit->isTrivial());
+
+        $ruleSet = new PreprocessRuleSet();
+        $this->assertEquals(0, $ruleSet->count());
+
+        $this->assertTrue($ruleSet->add($rule1));
+        $this->assertTrue($ruleSet->add($rule2));
+        $this->assertEquals(2, $ruleSet->count());
+        $this->assertTrue($ruleSet->add($unit));
+        $this->assertEquals(1, $ruleSet->count());
+
+        $this->assertTrue($ruleSet->contains($unit));
+        $this->assertFalse($ruleSet->contains($rule1->getHash()));
+        $this->assertFalse($ruleSet->contains($rule2));
+    }
+
+    public function testAddUnitRuleSubsumesSomePreviouslyAddedRules()
+    {
+        $rule1 = new PreprocessRule(array(42, 100), Rule::RULE_PACKAGE_REQUIRES, null);
+        $this->assertFalse($rule1->isTrivial());
+
+        $rule2 = new PreprocessRule(array(43, 101), Rule::RULE_PACKAGE_REQUIRES, null);
+        $this->assertFalse($rule2->isTrivial());
+
+        $unit = new PreprocessRule(array(42), Rule::RULE_PACKAGE_REQUIRES, null);
+        $this->assertFalse($unit->isTrivial());
+
+        $ruleSet = new PreprocessRuleSet();
+        $this->assertEquals(0, $ruleSet->count());
+
+        $this->assertTrue($ruleSet->add($rule1));
+        $this->assertTrue($ruleSet->add($rule2));
+        $this->assertEquals(2, $ruleSet->count());
+        $this->assertTrue($ruleSet->add($unit));
+        $this->assertEquals(2, $ruleSet->count());
+
+        $this->assertTrue($ruleSet->contains($unit));
+        $this->assertFalse($ruleSet->contains($rule1->getHash()));
+        $this->assertTrue($ruleSet->contains($rule2));
+    }
 }
