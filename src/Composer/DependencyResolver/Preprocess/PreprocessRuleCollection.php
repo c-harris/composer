@@ -76,11 +76,14 @@ class PreprocessRuleCollection implements \Countable
     public function checkSubsumed(PreprocessRule &$rule, array $candidates)
     {
         $allHash = $rule->allLiteralHash;
+        $allCount = $rule->literalCount;
         foreach ($candidates as $hash) {
             if (array_key_exists($hash, $this->rules)) {
-                if (($this->rules[$hash]->allLiteralHash & $allHash) == $this->rules[$hash]->allLiteralHash) {
-                    if ($this->rules[$hash]->subsumes($rule)) {
-                        return true;
+                if ($this->rules[$hash]->literalCount < $allCount) {
+                    if (($this->rules[$hash]->allLiteralHash & $allHash) == $this->rules[$hash]->allLiteralHash) {
+                        if ($this->rules[$hash]->subsumes($rule)) {
+                            return true;
+                        }
                     }
                 }
             }
