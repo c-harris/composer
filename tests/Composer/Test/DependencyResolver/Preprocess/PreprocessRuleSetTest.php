@@ -114,4 +114,114 @@ class PreprocessRuleSetTest extends TestCase
         $this->assertFalse($ruleSet->contains($rule1->getHash()));
         $this->assertTrue($ruleSet->contains($rule2));
     }
+
+    public function testDropOnlyRuleEmptiesAllOccursLists()
+    {
+        $rule1 = new PreprocessRule(array(42, 100, -12), Rule::RULE_PACKAGE_REQUIRES, null);
+        $this->assertFalse($rule1->isTrivial());
+
+        $ruleSet = new PreprocessRuleSet();
+        $this->assertEquals(0, $ruleSet->count());
+
+        $this->assertTrue($ruleSet->add($rule1));
+        $this->assertEquals(1, $ruleSet->count());
+
+        $expected = array(-12 => array($rule1->getHash()), 42 => array($rule1->getHash()), 100 => array($rule1->getHash()));
+        $actual = $ruleSet->getOccursList();
+
+        $this->assertEquals($expected, $actual);
+
+        $ruleSet->dropRule($rule1);
+        $this->assertEquals(0, $ruleSet->count());
+
+        $expected = array(-12 => array(), 42 => array(), 100 => array());
+        $actual = $ruleSet->getOccursList();
+
+        $this->assertEquals($expected, $actual);
+    }
+
+    public function testDropOneOfTwoNonOverlappingRulesEmptiesOnlySomeOccurLists()
+    {
+        $rule1 = new PreprocessRule(array(42, 100, -12), Rule::RULE_PACKAGE_REQUIRES, null);
+        $this->assertFalse($rule1->isTrivial());
+
+        $rule2 = new PreprocessRule(array(142, 1100, -112), Rule::RULE_PACKAGE_REQUIRES, null);
+        $this->assertFalse($rule1->isTrivial());
+
+        $ruleSet = new PreprocessRuleSet();
+        $this->assertEquals(0, $ruleSet->count());
+
+        $this->assertTrue($ruleSet->add($rule1));
+        $this->assertTrue($ruleSet->add($rule2));
+        $this->assertEquals(2, $ruleSet->count());
+
+        $expected = array(
+            -12 => array($rule1->getHash()),
+            42 => array($rule1->getHash()),
+            100 => array($rule1->getHash()),
+            -112 => array($rule2->getHash()),
+            142 => array($rule2->getHash()),
+            1100 => array($rule2->getHash())
+        );
+        $actual = $ruleSet->getOccursList();
+
+        $this->assertEquals($expected, $actual);
+
+        $ruleSet->dropRule($rule1);
+        $this->assertEquals(1, $ruleSet->count());
+
+        $expected = array(
+            -12 => array(),
+            42 => array(),
+            100 => array(),
+            -112 => array($rule2->getHash()),
+            142 => array($rule2->getHash()),
+            1100 => array($rule2->getHash())
+        );
+        $actual = $ruleSet->getOccursList();
+
+        $this->assertEquals($expected, $actual);
+    }
+
+    public function testDropOneOfTwoOverlappingRulesDoesNotEmptyOverlappingOccurLists()
+    {
+        $rule1 = new PreprocessRule(array(42, 100, -12), Rule::RULE_PACKAGE_REQUIRES, null);
+        $this->assertFalse($rule1->isTrivial());
+
+        $rule2 = new PreprocessRule(array(142, 1100, -112, 100, -12), Rule::RULE_PACKAGE_REQUIRES, null);
+        $this->assertFalse($rule1->isTrivial());
+
+        $ruleSet = new PreprocessRuleSet();
+        $this->assertEquals(0, $ruleSet->count());
+
+        $this->assertTrue($ruleSet->add($rule1));
+        $this->assertTrue($ruleSet->add($rule2));
+        $this->assertEquals(2, $ruleSet->count());
+
+        $expected = array(
+            -12 => array($rule1->getHash(), $rule2->getHash()),
+            42 => array($rule1->getHash()),
+            100 => array($rule1->getHash(), $rule2->getHash()),
+            -112 => array($rule2->getHash()),
+            142 => array($rule2->getHash()),
+            1100 => array($rule2->getHash())
+        );
+        $actual = $ruleSet->getOccursList();
+
+        $this->assertEquals($expected, $actual);
+
+        $ruleSet->dropRule($rule1);
+        $this->assertEquals(1, $ruleSet->count());
+
+        $expected = array(
+            -12 => array($rule2->getHash()),
+            42 => array(),
+            100 => array($rule2->getHash()),
+            -112 => array($rule2->getHash()),
+            142 => array($rule2->getHash()),
+            1100 => array($rule2->getHash())
+        );
+        $actual = $ruleSet->getOccursList();
+        $this->assertEquals($expected, $actual);
+    }
 }

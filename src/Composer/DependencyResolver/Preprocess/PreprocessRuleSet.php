@@ -130,4 +130,31 @@ class PreprocessRuleSet
     {
         return $this->rules->contains($object);
     }
+
+    /**
+     * Return the occurs lists - tracking which rules have what literal.
+     *
+     * @return array
+     */
+    public function getOccursList()
+    {
+        return $this->occurs;
+    }
+
+    /**
+     * Remove rule from rule set
+     *
+     * @param PreprocessRule $rule
+     */
+    public function dropRule(PreprocessRule $rule)
+    {
+        $hash = $rule->getHash();
+        $this->rules->detach($hash);
+
+        $literals = $rule->getLiterals();
+        $hashArray = array($hash);
+        foreach ($literals as $lit) {
+            $this->occurs[$lit] = array_values(array_diff($this->occurs[$lit], $hashArray));
+        }
+    }
 }
