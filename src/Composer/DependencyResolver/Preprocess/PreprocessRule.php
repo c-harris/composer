@@ -141,9 +141,9 @@ class PreprocessRule extends GenericRule
         PreprocessRule::$subsumesPostCount++;
 
         $thisLitz = $this->literals;
-        $thatLitz = $rule->getLiterals();
+        $overlap = array_intersect($thisLitz, $rule->getLiterals());
 
-        if ($thisLitz == array_intersect($thisLitz, $thatLitz)) {
+        if ($thisLitz == $overlap) {
             return true;
         }
 

@@ -93,10 +93,27 @@ class PreprocessRuleSet
             }
         }
 
-        if (null !== $smallLit) {
+        if (false && null !== $smallLit) {
             $occurList = $this->occurs[$smallLit];
-            if ($this->rules->checkSubsumed($rule, $occurList)) {
+            if ($this->rules->checkIsSubsumedBy($rule, $occurList)) {
                 return false;
+            }
+        }
+
+        $combo = array();
+        // check to see if rule subsumes any existing rules
+        foreach ($literals as $lit) {
+            if (empty($combo)) {
+                $combo = $this->occurs[$lit];
+            } else {
+                $combo = array_intersect($combo, $this->occurs[$lit]);
+            }
+        }
+
+        if (0 < count($combo)) {
+            $result = $this->rules->checkSubsumes($rule, $combo);
+            if (!empty($result)) {
+                // TODO: Fill in rule-drop
             }
         }
 

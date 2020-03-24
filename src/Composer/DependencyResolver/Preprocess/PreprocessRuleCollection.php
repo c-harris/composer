@@ -73,7 +73,7 @@ class PreprocessRuleCollection implements \Countable
      *
      * @return bool
      */
-    public function checkSubsumed(PreprocessRule &$rule, array $candidates)
+    public function checkIsSubsumedBy(PreprocessRule &$rule, array $candidates)
     {
         $allHash = $rule->allLiteralHash;
         $allCount = $rule->literalCount;
@@ -89,5 +89,29 @@ class PreprocessRuleCollection implements \Countable
             }
         }
         return false;
+    }
+
+    public function checkSubsumes(PreprocessRule &$rule, array $candidates)
+    {
+        $allHash = $rule->allLiteralHash;
+        $allCount = $rule->literalCount;
+        $negHash = $rule->negativeLiteralHash;
+
+        $result = array();
+        foreach ($candidates as $hash) {
+            if (array_key_exists($hash, $this->rules)) {
+                if ($allCount < $this->rules[$hash]->literalCount) {
+                    if (($allHash & $this->rules[$hash]->allLiteralHash) == $allHash) {
+                        if (($negHash & $this->rules[$hash]->negativeLiteralHash) == $negHash) {
+                            if ($rule->subsumes($this->rules[$hash])) {
+                                $result[] = $hash;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return $result;
     }
 }
