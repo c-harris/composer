@@ -62,7 +62,8 @@ class PreprocessRuleSet
 
         $hash = $rule->getHash();
         if ($rule->isAssertion()) {
-            $unitLit = $literals[0];
+            $unitLit = $literals[array_keys($literals)[0]];
+            $falseUnit = -$unitLit;
             $this->units[] = $unitLit;
 
             if (!array_key_exists($unitLit, $this->occurs)) {
@@ -71,9 +72,24 @@ class PreprocessRuleSet
 
             $dropList = $this->occurs[$unitLit];
             foreach ($dropList as $drop) {
-                $this->rules->detach($drop);
+                $this->dropRule($this->rules->get($drop));
             }
             $this->occurs[$unitLit] = array();
+
+            if (!array_key_exists($falseUnit, $this->occurs)) {
+                $this->occurs[$falseUnit] = array();
+            }
+
+            if (!empty($this->occurs[$falseUnit])) {
+                foreach ($this->occurs[$falseUnit] as $dropRule) {
+                    /** @var PreprocessRule $newRule */
+                    $newRule = clone($this->rules->get($dropRule));
+                    $newRule->dropLiteral($falseUnit);
+                    $this->dropRule($this->rules->get($dropRule));
+                    $this->add($newRule);
+                    unset($newRule);
+                }
+            }
         }
 
         $smallLit = null;
@@ -113,7 +129,9 @@ class PreprocessRuleSet
         if (0 < count($combo)) {
             $result = $this->rules->checkSubsumes($rule, $combo);
             if (!empty($result)) {
-                // TODO: Fill in rule-drop
+                foreach ($result as $dropRule) {
+                    $this->dropRule($dropRule);
+                }
             }
         }
 

@@ -33,6 +33,18 @@ class PreprocessRuleCollection implements \Countable
     }
 
     /**
+     * Retrieve rule by hash from collection
+     *
+     * @param string $hash
+     *
+     * @return PreprocessRule
+     */
+    public function get($hash)
+    {
+        return $this->rules[$hash];
+    }
+
+    /**
      *  Use PreprocessRule's hash value to save effort of coming up with something new
      * @param PreprocessRule $object
      * @return string

@@ -73,6 +73,12 @@ class PreprocessRuleSetTest extends TestCase
         $rule2 = new PreprocessRule(array(42, 101), Rule::RULE_PACKAGE_REQUIRES, null);
         $this->assertFalse($rule2->isTrivial());
 
+        $rule3 = new PreprocessRule(array(-42, 201, 202), Rule::RULE_PACKAGE_REQUIRES, null);
+        $this->assertFalse($rule3->isTrivial());
+
+        $rule3Drop = new PreprocessRule(array(201, 202), Rule::RULE_PACKAGE_REQUIRES, null);
+        $this->assertFalse($rule3->isTrivial());
+
         $unit = new PreprocessRule(array(42), Rule::RULE_PACKAGE_REQUIRES, null);
         $this->assertFalse($unit->isTrivial());
 
@@ -81,13 +87,39 @@ class PreprocessRuleSetTest extends TestCase
 
         $this->assertTrue($ruleSet->add($rule1));
         $this->assertTrue($ruleSet->add($rule2));
-        $this->assertEquals(2, $ruleSet->count());
+        $this->assertTrue($ruleSet->add($rule3));
+        $this->assertEquals(3, $ruleSet->count());
+
+        $expected = array(
+            42 => array($rule1->getHash(), $rule2->getHash()),
+            100 => array($rule1->getHash()),
+            101 => array($rule2->getHash()),
+            201 => array($rule3->getHash()),
+            202 => array($rule3->getHash()),
+            -42 => array($rule3->getHash())
+        );
+        $actual = $ruleSet->getOccursList();
+        $this->assertEquals($expected, $actual);
+
         $this->assertTrue($ruleSet->add($unit));
-        $this->assertEquals(1, $ruleSet->count());
+        $this->assertEquals(2, $ruleSet->count());
 
         $this->assertTrue($ruleSet->contains($unit));
         $this->assertFalse($ruleSet->contains($rule1->getHash()));
         $this->assertFalse($ruleSet->contains($rule2));
+        $this->assertFalse($ruleSet->contains($rule3));
+        $this->assertTrue($ruleSet->contains($rule3Drop));
+
+        $expected = array(
+            42 => array($unit->getHash()),
+            100 => array(),
+            101 => array(),
+            201 => array($rule3Drop->getHash()),
+            202 => array($rule3Drop->getHash()),
+            -42 => array()
+        );
+        $actual = $ruleSet->getOccursList();
+        $this->assertEquals($expected, $actual);
     }
 
     public function testAddUnitRuleSubsumesSomePreviouslyAddedRules()
